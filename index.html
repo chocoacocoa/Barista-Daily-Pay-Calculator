@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barista Daily Pay Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        espresso: {
+                            900: '#120d0b',
+                            800: '#1c1411',
+                            700: '#2a1f1b',
+                            600: '#3d2e28',
+                        },
+                        amber: {
+                            accent: '#e5a96a',
+                            light: '#f5c999',
+                            glow: 'rgba(229, 169, 106, 0.15)',
+                        },
+                        cream: {
+                            50: '#fdfbf7',
+                            100: '#f7f2ea',
+                            200: '#ebe1d3',
+                            muted: '#a3978c'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #120d0b;
+            color: #f7f2ea;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(229, 169, 106, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(61, 46, 40, 0.3) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .glass-panel {
+            background: rgba(28, 20, 17, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(229, 169, 106, 0.12);
+        }
+
+        .glass-card {
+            background: rgba(42, 31, 27, 0.5);
+            border: 1px solid rgba(229, 169, 106, 0.08);
+        }
+
+        .receipt-border {
+            background-image: radial-gradient(circle, transparent 70%, rgba(28, 20, 17, 0.75) 75%);
+            background-size: 16px 16px;
+            background-position: 0 -8px;
+        }
+
+        /* Custom Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: #2a1f1b;
+            height: 8px;
+            border-radius: 4px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            background: #e5a96a;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(229, 169, 106, 0.5);
+            transition: all 0.2s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #f5c999;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(229, 169, 106, 0.1); }
+            50% { box-shadow: 0 0 25px rgba(229, 169, 106, 0.25); }
+        }
+
+        .glow-active {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+
+        /* Number Input Spinner Hide */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans flex flex-col justify-between p-4 md:p-8 antialiased">
+
+    <div class="max-w-5xl mx-auto w-full">
+        
+        <!-- Header & Watermark Notice -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-amber-accent/10">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <span class="p-2.5 bg-amber-accent/10 text-amber-accent rounded-xl border border-amber-accent/20">
+                        <i class="fa-solid me-0.5 fa-mug-hot text-xl"></i>
+                    </span>
+                    <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-cream-50">Barista Daily Pay Calculator</h1>
+                </div>
+                <p class="text-cream-muted text-sm pl-11">Precision shift earnings and overtime engine</p>
+            </div>
+
+            <!-- Watermark / Credit Tag -->
+            <div class="glass-panel px-4 py-2.5 rounded-xl flex items-center gap-3 border border-amber-accent/20">
+                <div class="flex text-amber-accent text-xs gap-1">
+                    <i class="fa-solid fa-code"></i>
+                    <i class="fa-solid fa-paint-brush"></i>
+                </div>
+                <div class="text-xs">
+                    <p class="text-cream-50 font-medium">
+                        Backend Logic & Math: <span class="text-amber-accent font-semibold">Van Cholo</span>
+                    </p>
+                    <p class="text-cream-muted text-[11px]">
+                        GUI & Front-End Design: <span class="text-cream-200 font-medium">Gemini</span>
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- LEFT COLUMN: Controls & Input Parameters -->
+            <section class="lg:col-span-7 glass-panel p-6 md:p-8 rounded-3xl shadow-2xl space-y-6">
+                
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-cream-50 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-amber-accent text-sm"></i>
+                        Shift Parameters
+                    </h2>
+                    <button id="resetBtn" class="text-xs text-cream-muted hover:text-amber-accent transition-colors flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-right"></i> Reset Defaults
+                    </button>
+                </div>
+
+                <!-- Working Hours Slider + Numeric Input -->
+                <div class="space-y-3 glass-card p-5 rounded-2xl">
+                    <div class="flex justify-between items-center">
+                        <label for="hoursInput" class="text-sm font-medium text-cream-200">
+                            Working Hours (Today)
+                        </label>
+                        <div class="flex items-baseline gap-1 bg-espresso-900/80 px-3 py-1 rounded-lg border border-amber-accent/20">
+                            <span id="hoursDisplay" class="font-mono text-xl font-bold text-amber-accent">8</span>
+                            <span class="text-xs text-cream-muted">hrs</span>
+                        </div>
+                    </div>
+
+                    <input type="range" id="hoursSlider" min="0" max="24" step="1" value="8" class="w-full">
+                    
+                    <div class="flex justify-between text-[11px] text-cream-muted px-1">
+                        <span>0h</span>
+                        <span>8h (Standard Shift)</span>
+                        <span>16h</span>
+                        <span>24h</span>
+                    </div>
+                </div>
+
+                <!-- Rate Configuration Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    
+                    <!-- Base Hourly Rate -->
+                    <div class="glass-card p-4 rounded-2xl space-y-2">
+                        <label for="rateInput" class="text-xs font-medium text-cream-muted block">
+                            Base Hourly Rate (₱)
+                        </label>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-3 text-cream-muted font-mono text-sm">₱</span>
+                            <input type="number" id="rateInput" value="80.00" step="1" min="0" 
+                                class="w-full bg-espresso-900/90 border border-amber-accent/20 rounded-xl pl-8 pr-3 py-2.5 font-mono text-cream-50 focus:outline-none focus:border-amber-accent text-sm">
+                        </div>
+                    </div>
+
+                    <!-- OT Multiplier -->
+                    <div class="glass-card p-4 rounded-2xl space-y-2">
+                        <label for="otMultiplier" class="text-xs font-medium text-cream-muted block">
+                            OT Rate Multiplier
+                        </label>
+                        <div class="relative flex items-center">
+                            <input type="number" id="otMultiplier" value="1.5" step="0.1" min="1.0" 
+                                class="w-full bg-espresso-900/90 border border-amber-accent/20 rounded-xl px-3 py-2.5 font-mono text-cream-50 focus:outline-none focus:border-amber-accent text-sm">
+                            <span class="absolute right-3 text-cream-muted font-mono text-xs">x</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Tax Policy Grid -->
+                <div class="glass-card p-5 rounded-2xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-cream-200/10 pb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-amber-accent">Tax Policy Settings</span>
+                        <span class="text-[11px] text-cream-muted bg-espresso-900 px-2 py-0.5 rounded-full border border-cream-200/5">Automated Deduction</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label for="taxThreshold" class="text-xs text-cream-muted">Threshold (Gross > ₱)</label>
+                            <input type="number" id="taxThreshold" value="1000" step="50" 
+                                class="w-full bg-espresso-900/90 border border-amber-accent/20 rounded-xl px-3 py-2 font-mono text-cream-50 text-xs focus:outline-none focus:border-amber-accent">
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="taxRate" class="text-xs text-cream-muted">Tax Rate (%)</label>
+                            <input type="number" id="taxRate" value="5" step="0.5" 
+                                class="w-full bg-espresso-900/90 border border-amber-accent/20 rounded-xl px-3 py-2 font-mono text-cream-50 text-xs focus:outline-none focus:border-amber-accent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Preset Hour Buttons -->
+                <div class="space-y-2">
+                    <label class="text-xs text-cream-muted block">Quick Hour Presets</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="preset-btn px-3 py-1.5 bg-espresso-700/60 hover:bg-amber-accent/20 border border-amber-accent/10 rounded-lg text-xs text-cream-200 transition-all" data-hours="4">4 hrs (Half)</button>
+                        <button class="preset-btn px-3 py-1.5 bg-espresso-700/60 hover:bg-amber-accent/20 border border-amber-accent/10 rounded-lg text-xs text-cream-200 transition-all" data-hours="8">8 hrs (Standard)</button>
+                        <button class="preset-btn px-3 py-1.5 bg-espresso-700/60 hover:bg-amber-accent/20 border border-amber-accent/10 rounded-lg text-xs text-cream-200 transition-all" data-hours="10">10 hrs (2h OT)</button>
+                        <button class="preset-btn px-3 py-1.5 bg-espresso-700/60 hover:bg-amber-accent/20 border border-amber-accent/10 rounded-lg text-xs text-cream-200 transition-all" data-hours="12">12 hrs (4h OT)</button>
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="lg:col-span-5 space-y-6">
+                
+                <!-- Main Net Pay Card -->
+                <div class="glass-panel p-6 rounded-3xl glow-active relative overflow-hidden border border-amber-accent/30">
+                    <div class="absolute -right-6 -bottom-6 text-espresso-700/30 text-8xl pointer-events-none">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+
+                    <div class="text-xs uppercase tracking-widest text-amber-accent font-semibold mb-1">
+                        Final Take-Home Pay
+                    </div>
+                    <div class="flex items-baseline gap-1 my-2">
+                        <span class="text-2xl font-mono text-amber-accent">₱</span>
+                        <span id="finalNetPay" class="text-4xl md:text-5xl font-mono font-bold text-cream-50 tracking-tight">640.00</span>
+                    </div>
+
+                    <!-- Status Badges -->
+                    <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-cream-200/10">
+                        <span id="otStatusBadge" class="text-[11px] px-2.5 py-1 rounded-full bg-espresso-900 border border-cream-200/10 text-cream-muted flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle text-[6px]"></i> <span id="otStatusText">No Overtime</span>
+                        </span>
+                        <span id="taxStatusBadge" class="text-[11px] px-2.5 py-1 rounded-full bg-espresso-900 border border-cream-200/10 text-cream-muted flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle text-[6px]"></i> <span id="taxStatusText">No Tax Applied</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Detailed Receipt Slip -->
+                <div class="bg-cream-50 text-espresso-900 p-6 rounded-2xl shadow-xl space-y-4 font-mono relative overflow-hidden">
+                    
+                    <!-- Decorative Receipt Top Wave -->
+                    <div class="border-b-2 border-dashed border-espresso-900/20 pb-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-base tracking-wider uppercase">Cozy Brews Cafe</h3>
+                                <p class="text-[11px] text-espresso-600">Daily Payroll Summary</p>
+                            </div>
+                            <i class="fa-solid fa-mug-hot text-2xl text-espresso-800/40"></i>
+                        </div>
+                    </div>
+
+                    <!-- Line Items Breakdown -->
+                    <div class="text-xs space-y-2.5">
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-espresso-700">Regular Pay (<span id="recRegHours">8</span>h @ ₱<span id="recRegRate">80</span>/h)</span>
+                            <span class="font-bold">₱<span id="recRegPay">640.00</span></span>
+                        </div>
+
+                        <div class="flex justify-between items-center" id="recOtRow">
+                            <span class="text-espresso-700">OT Pay (<span id="recOtHours">0</span>h @ ₱<span id="recOtRate">120</span>/h)</span>
+                            <span class="font-bold text-amber-800">+₱<span id="recOtPay">0.00</span></span>
+                        </div>
+
+                        <div class="border-t border-espresso-900/10 pt-2 flex justify-between items-center font-bold text-sm">
+                            <span>Gross Pay</span>
+                            <span>₱<span id="recGrossPay">640.00</span></span>
+                        </div>
+
+                        <div class="flex justify-between items-center text-red-700" id="recTaxRow">
+                            <span>Tax Deduction (<span id="recTaxPercent">5</span>%)</span>
+                            <span>-₱<span id="recTaxDeduction">0.00</span></span>
+                        </div>
+
+                    </div>
+
+                    <!-- Receipt Footer Total -->
+                    <div class="border-t-2 border-dashed border-espresso-900/20 pt-4 flex justify-between items-end">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-wider text-espresso-600 block">Net Payable</span>
+                            <span class="text-xs text-espresso-700">Van Cholo Backend Math</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xl font-bold text-espresso-900">₱<span id="recNetPay">640.00</span></span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+        <footer class="mt-12 text-center text-xs text-cream-muted/60 pb-4">
+            Designed for precision barista compensation modeling • Single-page app architecture
+        </footer>
+
+    </div>
+
+    <script>
+        // DOM Element Selections
+        const hoursSlider = document.getElementById('hoursSlider');
+        const hoursDisplay = document.getElementById('hoursDisplay');
+        const rateInput = document.getElementById('rateInput');
+        const otMultiplierInput = document.getElementById('otMultiplier');
+        const taxThresholdInput = document.getElementById('taxThreshold');
+        const taxRateInput = document.getElementById('taxRate');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Output Display Elements
+        const finalNetPay = document.getElementById('finalNetPay');
+        const otStatusBadge = document.getElementById('otStatusBadge');
+        const otStatusText = document.getElementById('otStatusText');
+        const taxStatusBadge = document.getElementById('taxStatusBadge');
+        const taxStatusText = document.getElementById('taxStatusText');
+
+        // Receipt Elements
+        const recRegHours = document.getElementById('recRegHours');
+        const recRegRate = document.getElementById('recRegRate');
+        const recRegPay = document.getElementById('recRegPay');
+        const recOtHours = document.getElementById('recOtHours');
+        const recOtRate = document.getElementById('recOtRate');
+        const recOtPay = document.getElementById('recOtPay');
+        const recGrossPay = document.getElementById('recGrossPay');
+        const recTaxPercent = document.getElementById('recTaxPercent');
+        const recTaxDeduction = document.getElementById('recTaxDeduction');
+        const recNetPay = document.getElementById('recNetPay');
+
+        /**
+         * VAN CHOLO'S BACKEND MATH LOGIC IMPLEMENTATION
+         */
+        function calculatePayroll() {
+            // Fetch inputs with fallbacks
+            const hours = parseFloat(hoursSlider.value) || 0;
+            const baseRate = parseFloat(rateInput.value) || 0;
+            const otMultiplier = parseFloat(otMultiplierInput.value) || 1.5;
+            const taxThreshold = parseFloat(taxThresholdInput.value) || 1000;
+            const taxRatePercent = parseFloat(taxRateInput.value) || 5;
+
+            // 1. Regular Hours vs Overtime Hours
+            let regularHours = 0;
+            let otHours = 0;
+
+            if (hours <= 8) {
+                regularHours = hours;
+                otHours = 0;
+            } else {
+                regularHours = 8;
+                otHours = hours - 8;
+            }
+
+            // 2. Calculations
+            const regularPay = regularHours * baseRate;
+            const otHourlyRate = baseRate * otMultiplier;
+            const otPay = otHours * otHourlyRate;
+            const grossPay = regularPay + otPay;
+
+            // 3. Tax Deductions (If Gross > Threshold)
+            let taxDeduction = 0;
+            const isTaxApplicable = grossPay > taxThreshold;
+
+            if (isTaxApplicable) {
+                taxDeduction = grossPay * (taxRatePercent / 100);
+            }
+
+            const netPay = grossPay - taxDeduction;
+
+            // 4. Update UI Displays
+            updateUI({
+                hours,
+                regularHours,
+                otHours,
+                baseRate,
+                otHourlyRate,
+                regularPay,
+                otPay,
+                grossPay,
+                taxRatePercent,
+                taxDeduction,
+                netPay,
+                isTaxApplicable
+            });
+        }
+
+        function updateUI(data) {
+            // Hours display
+            hoursDisplay.textContent = data.hours;
+
+            // Final Big Card Output
+            finalNetPay.textContent = data.netPay.toFixed(2);
+
+            // Badges Updates
+            if (data.otHours > 0) {
+                otStatusBadge.className = "text-[11px] px-2.5 py-1 rounded-full bg-amber-accent/20 border border-amber-accent/40 text-amber-accent flex items-center gap-1.5 font-medium";
+                otStatusText.textContent = `${data.otHours}h Overtime (+₱${data.otPay.toFixed(2)})`;
+            } else {
+                otStatusBadge.className = "text-[11px] px-2.5 py-1 rounded-full bg-espresso-900 border border-cream-200/10 text-cream-muted flex items-center gap-1.5";
+                otStatusText.textContent = "No Overtime";
+            }
+
+            if (data.isTaxApplicable) {
+                taxStatusBadge.className = "text-[11px] px-2.5 py-1 rounded-full bg-red-950/60 border border-red-500/30 text-red-300 flex items-center gap-1.5 font-medium";
+                taxStatusText.textContent = `${data.taxRatePercent}% Tax Applied (-₱${data.taxDeduction.toFixed(2)})`;
+            } else {
+                taxStatusBadge.className = "text-[11px] px-2.5 py-1 rounded-full bg-espresso-900 border border-cream-200/10 text-cream-muted flex items-center gap-1.5";
+                taxStatusText.textContent = "Tax Exempt (≤ ₱" + (parseFloat(taxThresholdInput.value) || 1000) + ")";
+            }
+
+            // Receipt Line Items
+            recRegHours.textContent = data.regularHours;
+            recRegRate.textContent = data.baseRate.toFixed(2);
+            recRegPay.textContent = data.regularPay.toFixed(2);
+
+            recOtHours.textContent = data.otHours;
+            recOtRate.textContent = data.otHourlyRate.toFixed(2);
+            recOtPay.textContent = data.otPay.toFixed(2);
+
+            recGrossPay.textContent = data.grossPay.toFixed(2);
+            recTaxPercent.textContent = data.taxRatePercent;
+            recTaxDeduction.textContent = data.taxDeduction.toFixed(2);
+            recNetPay.textContent = data.netPay.toFixed(2);
+        }
+
+        // Event Listeners for Live Updating
+        hoursSlider.addEventListener('input', calculatePayroll);
+        rateInput.addEventListener('input', calculatePayroll);
+        otMultiplierInput.addEventListener('input', calculatePayroll);
+        taxThresholdInput.addEventListener('input', calculatePayroll);
+        taxRateInput.addEventListener('input', calculatePayroll);
+
+        // Preset Hour Buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                hoursSlider.value = e.target.getAttribute('data-hours');
+                calculatePayroll();
+            });
+        });
+
+        // Reset Button
+        resetBtn.addEventListener('click', () => {
+            hoursSlider.value = 8;
+            rateInput.value = "80.00";
+            otMultiplierInput.value = "1.5";
+            taxThresholdInput.value = "1000";
+            taxRateInput.value = "5";
+            calculatePayroll();
+        });
+
+        // Initial Calculation on Page Load
+        window.addEventListener('DOMContentLoaded', calculatePayroll);
+    </script>
+</body>
+</html>
